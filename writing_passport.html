@@ -1,0 +1,1156 @@
+Here is a complete, standalone, self-contained HTML page containing your Grade 12 English Studio - Writing Process Passport application. It features a fully interactive 5-stage writing workflow with dynamic validation stamps, a speed-writing timer, an error-hunter editing mini-game, live character/word counters, a teacher answer key modal, and a printable stamp collection passport.
+You can save this code as an .html file (e.g., writing_passport.html) and open it directly in any modern web browser.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grade 12 English Studio - Writing Process Passport</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700;800&family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            passport: {
+              navy: '#0d1b2a',
+              deep: '#1b263b',
+              burgundy: '#5c1324',
+              gold: '#d4af37',
+              goldLight: '#f3e5ab',
+              cream: '#fbf9f4',
+              stampRed: '#c1121f',
+              stampBlue: '#1d4ed8',
+              stampGreen: '#15803d'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['Cinzel', 'serif'],
+            stamp: ['"Special Elite"', 'cursive'],
+            mono: ['"Courier Prime"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Stamp Inking and Rotating Animations */
+    .stamp-badge {
+      display: inline-block;
+      border: 3.5px dashed currentColor;
+      text-transform: uppercase;
+      font-family: 'Special Elite', cursive;
+      letter-spacing: 1.5px;
+      position: relative;
+      user-select: none;
+      transform: rotate(-7deg);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .stamp-animated {
+      animation: stampImpact 0.45s cubic-bezier(0.2, 0.8, 0.2, 1.2) forwards;
+    }
+
+    @keyframes stampImpact {
+      0% {
+        opacity: 0;
+        transform: scale(2.8) rotate(18deg);
+      }
+      70% {
+        opacity: 0.9;
+        transform: scale(0.92) rotate(-8deg);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) rotate(-6deg);
+      }
+    }
+
+    /* Boarding Pass Perforations */
+    .boarding-cut-left {
+      position: absolute;
+      left: -12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      background-color: #0d1b2a;
+      border-radius: 50%;
+    }
+    .boarding-cut-right {
+      position: absolute;
+      right: -12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      background-color: #0d1b2a;
+      border-radius: 50%;
+    }
+
+    /* Vintage Paper Texture & Gradients */
+    .bg-paper {
+      background-color: #faf7f2;
+      background-image: radial-gradient(#dfd7c5 0.75px, transparent 0.75px);
+      background-size: 16px 16px;
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-page {
+        box-shadow: none !important;
+        border: 2px solid #000 !important;
+        page-break-after: always;
+      }
+    }
+  </style>
+</head>
+<body class="bg-passport-navy text-slate-800 min-h-screen font-sans selection:bg-passport-gold selection:text-passport-navy pb-16">
+
+  <!-- ================= TOP NAVIGATION / ACTION BAR ================= -->
+  <header class="no-print bg-passport-deep border-b border-passport-gold/30 sticky top-0 z-40 backdrop-blur-md bg-opacity-95 shadow-lg">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-passport-gold to-yellow-200 text-passport-navy flex items-center justify-center font-bold text-lg shadow-md">
+          <i class="fa-solid fa-passport"></i>
+        </div>
+        <div>
+          <h1 class="text-white font-serif font-bold text-base sm:text-lg tracking-wide flex items-center gap-2">
+            WRITING PROCESS PASSPORT
+            <span class="text-xs bg-passport-burgundy text-amber-200 px-2 py-0.5 rounded-full border border-amber-300/40">GRADE 12</span>
+          </h1>
+          <p class="text-xs text-slate-300">Flight WR-12 • Plan • Write • Improve • Share</p>
+        </div>
+      </div>
+
+      <div class="flex items-center flex-wrap gap-2 sm:gap-3">
+        <!-- Progress Counter Indicator -->
+        <div class="hidden sm:flex items-center bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-amber-300">
+          <i class="fa-solid fa-stamp mr-1.5"></i>
+          <span>Stamps: <strong id="stampCountNav" class="text-white text-sm font-bold">0</strong>/5</span>
+        </div>
+
+        <!-- Answer Key & Rubric Button -->
+        <button onclick="toggleAnswerKeyModal(true)" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs sm:text-sm flex items-center gap-1.5 shadow transition-all active:scale-95" title="View exemplar teacher responses & scoring guide">
+          <i class="fa-solid fa-key"></i>
+          <span>Answer Key</span>
+        </button>
+
+        <!-- Copy Link Button with Toast -->
+        <button id="copyShareBtn" onclick="copyCurrentLink()" class="px-3.5 py-1.5 rounded-lg bg-passport-gold hover:bg-yellow-400 text-passport-navy font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-md transition-all active:scale-95">
+          <i class="fa-solid fa-share-nodes"></i>
+          <span id="copyBtnText">Copy Link</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Overall Progress Bar -->
+    <div class="w-full bg-slate-800 h-2">
+      <div id="passportProgressBar" class="h-full bg-gradient-to-r from-amber-500 via-passport-gold to-emerald-400 transition-all duration-500" style="width: 0%;"></div>
+    </div>
+  </header>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none bg-slate-900 border border-passport-gold text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+    <i id="toastIcon" class="fa-solid fa-check-circle text-passport-gold text-lg"></i>
+    <span id="toastMsg" class="text-sm font-medium">Link copied to clipboard!</span>
+  </div>
+
+  <main class="max-w-5xl mx-auto px-4 pt-6 space-y-8">
+
+    <!-- ================= BOARDING PASS MANIFEST (PAGE 1) ================= -->
+    <section class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl shadow-2xl border-4 border-amber-300/60 overflow-hidden relative">
+      <div class="boarding-cut-left hidden md:block"></div>
+      <div class="boarding-cut-right hidden md:block"></div>
+
+      <div class="bg-passport-burgundy text-amber-200 px-6 py-4 flex flex-wrap justify-between items-center border-b-2 border-amber-400/40">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-plane-departure text-2xl text-amber-300"></i>
+          <div>
+            <div class="text-xs uppercase tracking-widest text-amber-300/80 font-bold">Passenger Manifest & Official Boarding Pass</div>
+            <div class="font-serif font-black text-lg md:text-xl text-white">ENGLISH STUDIO FLIGHT WR-12</div>
+          </div>
+        </div>
+        <div class="text-right">
+          <span class="inline-block bg-amber-400 text-passport-navy text-xs font-black px-3 py-1 rounded tracking-wider uppercase">Official Ticket</span>
+        </div>
+      </div>
+
+      <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+        <!-- Input Fields -->
+        <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              <i class="fa-solid fa-user-pen text-passport-burgundy mr-1"></i> Passenger Full Name:
+            </label>
+            <input type="text" id="passengerName" placeholder="e.g., Sarah Al-Mansoor" class="w-full bg-white border-2 border-slate-300 rounded-lg px-3.5 py-2 text-sm font-semibold focus:border-passport-burgundy focus:outline-none transition-all" oninput="updatePassengerBadge()">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              <i class="fa-solid fa-users text-passport-burgundy mr-1"></i> Studio Flight Group:
+            </label>
+            <input type="text" id="groupName" placeholder="e.g., Group Alpha - Rhetoric Crew" class="w-full bg-white border-2 border-slate-300 rounded-lg px-3.5 py-2 text-sm font-semibold focus:border-passport-burgundy focus:outline-none transition-all" oninput="updatePassengerBadge()">
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              <i class="fa-solid fa-lightbulb text-passport-burgundy mr-1"></i> Selected Writing Topic / Inquiry:
+            </label>
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input type="text" id="writingTopic" value="Should Artificial Intelligence be Integrated into High School Classrooms?" class="w-full bg-white border-2 border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:border-passport-burgundy focus:outline-none">
+              <button onclick="applyPresetPrompt()" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-3 py-2 rounded-lg whitespace-nowrap">
+                Sample Topic
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Verification Stamp Badge -->
+        <div class="flex flex-col items-center justify-center p-4 bg-white/70 rounded-xl border border-dashed border-slate-400 text-center relative overflow-hidden">
+          <div id="manifestStamp" class="stamp-badge text-passport-burgundy p-3 border-passport-burgundy rounded-lg">
+            <div class="text-[10px] font-mono tracking-widest">WRITING STUDIO</div>
+            <div class="text-lg font-black leading-tight">BOARDING PASS</div>
+            <div class="text-xs font-bold" id="manifestStampDate">DATE: 2026-OCT</div>
+            <div class="text-[9px] text-emerald-700 font-sans font-black mt-1">● READY FOR DEPARTURE</div>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-2 font-mono">MANIFEST ID: WR12-PASSPORT-2026</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= STAGE 1: PREWRITING (PAGE 2) ================= -->
+    <section class="bg-paper rounded-2xl p-6 sm:p-8 shadow-xl border border-amber-200 relative transition-all" id="stage1Section">
+      <div class="flex flex-wrap items-center justify-between pb-4 mb-6 border-b-2 border-amber-900/10 gap-3">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-xl bg-passport-burgundy text-amber-200 flex items-center justify-center font-serif text-xl font-black shadow">01</span>
+          <div>
+            <span class="text-xs font-bold tracking-widest uppercase text-passport-burgundy">Stage 1</span>
+            <h2 class="text-2xl font-serif font-black text-slate-900">PREWRITING: Brainstorm & Organize</h2>
+          </div>
+        </div>
+        <div id="stampSlot1" class="h-14 flex items-center">
+          <span class="text-xs font-mono text-slate-400 italic border border-dashed border-slate-300 rounded px-3 py-2">☐ Stamp 01 Pending</span>
+        </div>
+      </div>
+
+      <div class="bg-amber-100/70 border-l-4 border-amber-600 p-4 rounded-r-lg mb-6 flex items-start gap-3">
+        <i class="fa-solid fa-compass text-amber-700 text-xl mt-0.5"></i>
+        <div class="text-sm text-amber-900 leading-relaxed">
+          <strong class="font-bold">Passport Mission (3-2-1 Challenge):</strong> Generate <strong>3 core ideas</strong>, provide <strong>2 compelling reasons</strong>, and define <strong>1 concrete real-world example</strong> to build your bedrock outline.
+        </div>
+      </div>
+
+      <!-- 3-2-1 Interactive Matrix -->
+      <div class="space-y-6">
+        <!-- 3 Ideas -->
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+            <span class="bg-passport-burgundy text-white text-xs px-2 py-0.5 rounded">Task 1</span>
+            Write 3 Main Ideas:
+          </label>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="bg-white p-3 rounded-xl border border-slate-300 shadow-sm focus-within:ring-2 focus-within:ring-amber-500">
+              <span class="text-[11px] font-bold text-slate-500 uppercase">Idea A</span>
+              <input type="text" id="idea1" placeholder="e.g., Personalized pacing for struggling learners" class="w-full text-sm font-medium mt-1 focus:outline-none">
+            </div>
+            <div class="bg-white p-3 rounded-xl border border-slate-300 shadow-sm focus-within:ring-2 focus-within:ring-amber-500">
+              <span class="text-[11px] font-bold text-slate-500 uppercase">Idea B</span>
+              <input type="text" id="idea2" placeholder="e.g., Instant 24/7 formative feedback on writing drafts" class="w-full text-sm font-medium mt-1 focus:outline-none">
+            </div>
+            <div class="bg-white p-3 rounded-xl border border-slate-300 shadow-sm focus-within:ring-2 focus-within:ring-amber-500">
+              <span class="text-[11px] font-bold text-slate-500 uppercase">Idea C</span>
+              <input type="text" id="idea3" placeholder="e.g., Critical AI literacy prepares students for careers" class="w-full text-sm font-medium mt-1 focus:outline-none">
+            </div>
+          </div>
+        </div>
+
+        <!-- 2 Reasons -->
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+            <span class="bg-passport-burgundy text-white text-xs px-2 py-0.5 rounded">Task 2</span>
+            Write 2 Logical Reasons:
+          </label>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="bg-white p-3 rounded-xl border border-slate-300 shadow-sm focus-within:ring-2 focus-within:ring-amber-500">
+              <span class="text-[11px] font-bold text-slate-500 uppercase">Reason 1</span>
+              <input type="text" id="reason1" placeholder="e.g., Teachers have limited time for individual one-on-one revisions" class="w-full text-sm font-medium mt-1 focus:outline-none">
+            </div>
+            <div class="bg-white p-3 rounded-xl border border-slate-300 shadow-sm focus-within:ring-2 focus-within:ring-amber-500">
+              <span class="text-[11px] font-bold text-slate-500 uppercase">Reason 2</span>
+              <input type="text" id="reason2" placeholder="e.g., Workforce requirements demand responsible prompt engineering" class="w-full text-sm font-medium mt-1 focus:outline-none">
+            </div>
+          </div>
+        </div>
+
+        <!-- 1 Example -->
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+            <span class="bg-passport-burgundy text-white text-xs px-2 py-0.5 rounded">Task 3</span>
+            Write 1 Concrete Example / Evidence:
+          </label>
+          <div class="bg-white p-3 rounded-xl border border-slate-300 shadow-sm focus-within:ring-2 focus-within:ring-amber-500">
+            <input type="text" id="example1" placeholder="e.g., Khan Academy's Khanmigo tutoring pilot improved math and essay confidence by 34%." class="w-full text-sm font-medium focus:outline-none">
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+          <button onclick="fillStage1Exemplar()" class="text-xs text-amber-900 font-bold hover:underline flex items-center gap-1">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Load Exemplar Brainstorm
+          </button>
+          <button onclick="validateStage1()" class="bg-passport-burgundy hover:bg-red-900 text-white font-bold px-6 py-2.5 rounded-xl shadow-md flex items-center gap-2 transition active:scale-95">
+            <i class="fa-solid fa-stamp"></i>
+            <span>Validate & Stamp Prewriting</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= STAGE 2: DRAFTING (PAGE 3) ================= -->
+    <section class="bg-paper rounded-2xl p-6 sm:p-8 shadow-xl border border-amber-200 relative transition-all" id="stage2Section">
+      <div class="flex flex-wrap items-center justify-between pb-4 mb-6 border-b-2 border-amber-900/10 gap-3">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-xl bg-passport-burgundy text-amber-200 flex items-center justify-center font-serif text-xl font-black shadow">02</span>
+          <div>
+            <span class="text-xs font-bold tracking-widest uppercase text-passport-burgundy">Stage 2</span>
+            <h2 class="text-2xl font-serif font-black text-slate-900">DRAFTING: Write the First Version</h2>
+          </div>
+        </div>
+        <div id="stampSlot2" class="h-14 flex items-center">
+          <span class="text-xs font-mono text-slate-400 italic border border-dashed border-slate-300 rounded px-3 py-2">☐ Stamp 02 Pending</span>
+        </div>
+      </div>
+
+      <!-- Instruction & Sprint Timer -->
+      <div class="flex flex-wrap items-center justify-between bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-lg mb-4 gap-3">
+        <div class="flex items-start gap-3 max-w-xl">
+          <i class="fa-solid fa-pen-nib text-blue-700 text-xl mt-0.5"></i>
+          <p class="text-sm text-blue-900">
+            <strong>Motto:</strong> <em>"Don't worry about mistakes yet, just write!"</em> Pour your ideas onto the page without censoring yourself.
+          </p>
+        </div>
+        <!-- Speed Writing Timer -->
+        <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-blue-200 shadow-sm">
+          <i class="fa-solid fa-stopwatch text-blue-600"></i>
+          <span id="timerDisplay" class="font-mono font-bold text-sm text-slate-800">05:00</span>
+          <button id="timerToggleBtn" onclick="toggleDraftTimer()" class="text-xs px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded">
+            Start Sprint
+          </button>
+        </div>
+      </div>
+
+      <!-- Writing Area -->
+      <div class="relative">
+        <textarea id="draftText" rows="7" placeholder="Begin drafting your first version here... Synthesize your 3 ideas, reasons, and example into complete paragraphs." class="w-full bg-white p-4 rounded-xl border-2 border-slate-300 font-mono text-sm leading-relaxed focus:border-passport-deep focus:outline-none transition shadow-inner" oninput="updateDraftStats()"></textarea>
+        
+        <!-- Live Counters -->
+        <div class="flex flex-wrap items-center justify-between text-xs text-slate-500 mt-2 px-1">
+          <div class="space-x-3">
+            <span>Words: <strong id="wordCount" class="text-slate-800 font-bold">0</strong></span>
+            <span>Characters: <strong id="charCount" class="text-slate-800 font-bold">0</strong></span>
+            <span class="text-emerald-700 font-medium" id="draftGoalNote">(Goal: At least 40 words to earn stamp)</span>
+          </div>
+          <button onclick="fillStage2Exemplar()" class="text-amber-900 font-bold hover:underline flex items-center gap-1">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Load Exemplar Draft
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end">
+        <button onclick="validateStage2()" class="bg-passport-burgundy hover:bg-red-900 text-white font-bold px-6 py-2.5 rounded-xl shadow-md flex items-center gap-2 transition active:scale-95">
+          <i class="fa-solid fa-stamp"></i>
+          <span>Lock Draft & Stamp 02</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= STAGE 3: REVISING (PAGE 4) ================= -->
+    <section class="bg-paper rounded-2xl p-6 sm:p-8 shadow-xl border border-amber-200 relative transition-all" id="stage3Section">
+      <div class="flex flex-wrap items-center justify-between pb-4 mb-6 border-b-2 border-amber-900/10 gap-3">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-xl bg-passport-burgundy text-amber-200 flex items-center justify-center font-serif text-xl font-black shadow">03</span>
+          <div>
+            <span class="text-xs font-bold tracking-widest uppercase text-passport-burgundy">Stage 3</span>
+            <h2 class="text-2xl font-serif font-black text-slate-900">REVISING: Improve Ideas & Organization</h2>
+          </div>
+        </div>
+        <div id="stampSlot3" class="h-14 flex items-center">
+          <span class="text-xs font-mono text-slate-400 italic border border-dashed border-slate-300 rounded px-3 py-2">☐ Stamp 03 Pending</span>
+        </div>
+      </div>
+
+      <div class="bg-purple-50 border-l-4 border-purple-600 p-4 rounded-r-lg mb-6 flex items-start gap-3">
+        <i class="fa-solid fa-shuffle text-purple-700 text-xl mt-0.5"></i>
+        <div class="text-sm text-purple-900">
+          <strong>Task Focus:</strong> Peer review and architectural enhancement. Clarify your central claim, improve flow with transitional signposts, and deepen your evidence.
+        </div>
+      </div>
+
+      <!-- Peer Review Interactive Checklist -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6">
+        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-purple-700"></i>
+          Peer Review Evaluation Rubric
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <label class="flex items-start gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
+            <input type="checkbox" id="revCheck1" class="mt-1 w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
+            <span class="text-xs text-slate-700"><strong>Clarity:</strong> Is the thesis claim explicit, compelling, and free of ambiguity?</span>
+          </label>
+          <label class="flex items-start gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
+            <input type="checkbox" id="revCheck2" class="mt-1 w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
+            <span class="text-xs text-slate-700"><strong>Organization:</strong> Are topic sentences distinct and linked with strong transitions?</span>
+          </label>
+          <label class="flex items-start gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
+            <input type="checkbox" id="revCheck3" class="mt-1 w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
+            <span class="text-xs text-slate-700"><strong>Depth:</strong> Are claims backed by concrete statistics or specific real-world illustrations?</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Interactive Revision Upgrade Sandbox -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-bold text-slate-800">
+            <i class="fa-solid fa-arrows-split-up-and-left text-purple-700 mr-1"></i>
+            Revised Version (Upgrade your Draft):
+          </label>
+          <button onclick="fillStage3Exemplar()" class="text-xs text-amber-900 font-bold hover:underline flex items-center gap-1">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Load Exemplar Revision
+          </button>
+        </div>
+        <textarea id="revisedText" rows="6" placeholder="Paste or re-type your improved draft here. Insert transitions (e.g., 'Furthermore', 'Consequently') and refine sentence variety..." class="w-full bg-white p-4 rounded-xl border-2 border-slate-300 font-mono text-sm leading-relaxed focus:border-purple-600 focus:outline-none transition shadow-inner"></textarea>
+      </div>
+
+      <div class="mt-6 flex justify-end">
+        <button onclick="validateStage3()" class="bg-passport-burgundy hover:bg-red-900 text-white font-bold px-6 py-2.5 rounded-xl shadow-md flex items-center gap-2 transition active:scale-95">
+          <i class="fa-solid fa-stamp"></i>
+          <span>Approve Revision & Stamp 03</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= STAGE 4: EDITING (PAGE 5) ================= -->
+    <section class="bg-paper rounded-2xl p-6 sm:p-8 shadow-xl border border-amber-200 relative transition-all" id="stage4Section">
+      <div class="flex flex-wrap items-center justify-between pb-4 mb-6 border-b-2 border-amber-900/10 gap-3">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-xl bg-passport-burgundy text-amber-200 flex items-center justify-center font-serif text-xl font-black shadow">04</span>
+          <div>
+            <span class="text-xs font-bold tracking-widest uppercase text-passport-burgundy">Stage 4</span>
+            <h2 class="text-2xl font-serif font-black text-slate-900">EDITING: Fix Grammar, Spelling & Punctuation</h2>
+          </div>
+        </div>
+        <div id="stampSlot4" class="h-14 flex items-center">
+          <span class="text-xs font-mono text-slate-400 italic border border-dashed border-slate-300 rounded px-3 py-2">☐ Stamp 04 Pending</span>
+        </div>
+      </div>
+
+      <!-- Mini-Game: Error Hunter Challenge -->
+      <div class="bg-emerald-950 text-white p-5 rounded-xl shadow-lg mb-6 border border-emerald-700/50">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="bg-emerald-600 text-white text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Mini-Game</span>
+            <h3 class="font-bold text-emerald-200 text-sm sm:text-base">Inspector Error Hunter (Find 4 Hidden Errors)</h3>
+          </div>
+          <span id="errorHunterScore" class="text-xs font-mono bg-emerald-900 px-3 py-1 rounded text-emerald-300 border border-emerald-700">Found: 0/4</span>
+        </div>
+
+        <p class="text-xs text-slate-300 mb-3">Click on the underlined bug-words in the student passage below to correct grammar, capitalization, spelling, and punctuation:</p>
+
+        <!-- Interactive passage with clickable error tokens -->
+        <div class="bg-slate-900/80 p-4 rounded-lg font-mono text-sm leading-relaxed border border-emerald-800 text-slate-200">
+          When high school students <button id="errBtn1" onclick="resolveGameError(1, this)" class="bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-400/50 hover:bg-amber-400/30 transition">utilizes</button> AI tools properly, 
+          their writing skills <button id="errBtn2" onclick="resolveGameError(2, this)" class="bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-400/50 hover:bg-amber-400/30 transition">flurish</button>. 
+          In fact, <button id="errBtn3" onclick="resolveGameError(3, this)" class="bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-400/50 hover:bg-amber-400/30 transition">mr. henderson</button> demonstrated that students who treat technology as a collaborator<button id="errBtn4" onclick="resolveGameError(4, this)" class="bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-400/50 hover:bg-amber-400/30 transition">?</button> achieve superior analytical clarity.
+        </div>
+        <div id="errorFixFeedback" class="text-xs mt-2 text-emerald-400 min-h-[20px] font-medium"></div>
+      </div>
+
+      <!-- Editing 4 Pillars Checklist -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <label class="flex items-center gap-2 p-3 bg-white rounded-lg border border-slate-300 cursor-pointer">
+          <input type="checkbox" id="editCheckGrammar" class="w-4 h-4 text-emerald-600 rounded">
+          <span class="text-xs font-bold text-slate-700">☐ Grammar</span>
+        </label>
+        <label class="flex items-center gap-2 p-3 bg-white rounded-lg border border-slate-300 cursor-pointer">
+          <input type="checkbox" id="editCheckSpelling" class="w-4 h-4 text-emerald-600 rounded">
+          <span class="text-xs font-bold text-slate-700">☐ Spelling</span>
+        </label>
+        <label class="flex items-center gap-2 p-3 bg-white rounded-lg border border-slate-300 cursor-pointer">
+          <input type="checkbox" id="editCheckPunctuation" class="w-4 h-4 text-emerald-600 rounded">
+          <span class="text-xs font-bold text-slate-700">☐ Punctuation</span>
+        </label>
+        <label class="flex items-center gap-2 p-3 bg-white rounded-lg border border-slate-300 cursor-pointer">
+          <input type="checkbox" id="editCheckCaps" class="w-4 h-4 text-emerald-600 rounded">
+          <span class="text-xs font-bold text-slate-700">☐ Capitalization</span>
+        </label>
+      </div>
+
+      <!-- Polish Editor -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-bold text-slate-800">Your Polished Final Draft (Error-Free):</label>
+          <button onclick="fillStage4Exemplar()" class="text-xs text-amber-900 font-bold hover:underline flex items-center gap-1">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Copy Revised Draft Here
+          </button>
+        </div>
+        <textarea id="polishedText" rows="6" placeholder="Finalized, error-free copy ready for publication..." class="w-full bg-white p-4 rounded-xl border-2 border-slate-300 font-mono text-sm leading-relaxed focus:border-emerald-600 focus:outline-none transition shadow-inner"></textarea>
+      </div>
+
+      <div class="mt-6 flex justify-end">
+        <button onclick="validateStage4()" class="bg-passport-burgundy hover:bg-red-900 text-white font-bold px-6 py-2.5 rounded-xl shadow-md flex items-center gap-2 transition active:scale-95">
+          <i class="fa-solid fa-stamp"></i>
+          <span>Approve Editing & Stamp 04</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= STAGE 5: PUBLISHING (PAGE 6) ================= -->
+    <section class="bg-paper rounded-2xl p-6 sm:p-8 shadow-xl border border-amber-200 relative transition-all" id="stage5Section">
+      <div class="flex flex-wrap items-center justify-between pb-4 mb-6 border-b-2 border-amber-900/10 gap-3">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-xl bg-passport-burgundy text-amber-200 flex items-center justify-center font-serif text-xl font-black shadow">05</span>
+          <div>
+            <span class="text-xs font-bold tracking-widest uppercase text-passport-burgundy">Stage 5</span>
+            <h2 class="text-2xl font-serif font-black text-slate-900">PUBLISHING: Share Your Final Version</h2>
+          </div>
+        </div>
+        <div id="stampSlot5" class="h-14 flex items-center">
+          <span class="text-xs font-mono text-slate-400 italic border border-dashed border-slate-300 rounded px-3 py-2">☐ Stamp 05 Pending</span>
+        </div>
+      </div>
+
+      <div class="bg-amber-50 border-l-4 border-amber-600 p-4 rounded-r-lg mb-6 flex items-start gap-3">
+        <i class="fa-solid fa-bullhorn text-amber-700 text-xl mt-0.5"></i>
+        <div class="text-sm text-amber-900">
+          <strong>Final Step:</strong> Present your final version to the class. <em>Be clear, confident, and proud!</em>
+        </div>
+      </div>
+
+      <!-- Presentation Readiness Deck -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+          <div class="w-10 h-10 mx-auto rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-lg mb-2">
+            <i class="fa-solid fa-volume-high"></i>
+          </div>
+          <h4 class="font-bold text-slate-800 text-sm">Vocal Projection</h4>
+          <p class="text-xs text-slate-600 mt-1">Speak slowly and project across the whole room with conviction.</p>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+          <div class="w-10 h-10 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg mb-2">
+            <i class="fa-solid fa-eye"></i>
+          </div>
+          <h4 class="font-bold text-slate-800 text-sm">Audience Eye Contact</h4>
+          <p class="text-xs text-slate-600 mt-1">Alternate gaze across listeners instead of just reading down.</p>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+          <div class="w-10 h-10 mx-auto rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-lg mb-2">
+            <i class="fa-solid fa-medal"></i>
+          </div>
+          <h4 class="font-bold text-slate-800 text-sm">Author Pride</h4>
+          <p class="text-xs text-slate-600 mt-1">Conclude with a thought-provoking final synthesis question.</p>
+        </div>
+      </div>
+
+      <!-- Published Showcase Reader View -->
+      <div class="bg-white p-6 rounded-xl border-2 border-slate-200 shadow-inner">
+        <div class="flex items-center justify-between border-b pb-3 mb-4">
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400">Formal Publication Output</span>
+            <h3 id="showcaseTitle" class="text-lg font-serif font-black text-slate-800">High School Studio Article</h3>
+          </div>
+          <span class="text-xs font-mono bg-slate-100 px-2 py-1 rounded text-slate-600" id="showcaseAuthor">By: Student Author</span>
+        </div>
+        <div id="showcaseBody" class="font-mono text-sm text-slate-700 leading-relaxed italic bg-slate-50 p-4 rounded-lg min-h-[120px]">
+          (Your published text from Stage 4 will automatically appear here once approved or synced.)
+        </div>
+      </div>
+
+      <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+        <button onclick="syncToPublishingShowcase()" class="text-xs font-bold text-passport-burgundy hover:underline flex items-center gap-1">
+          <i class="fa-solid fa-arrows-rotate"></i> Refresh Showcase from Polished Text
+        </button>
+        <button onclick="validateStage5()" class="bg-passport-burgundy hover:bg-red-900 text-white font-bold px-6 py-2.5 rounded-xl shadow-md flex items-center gap-2 transition active:scale-95">
+          <i class="fa-solid fa-stamp"></i>
+          <span>Present & Unlock Final Stamp 05</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= PASSPORT STAMP COLLECTION (PAGE 7) ================= -->
+    <section class="bg-white rounded-3xl p-6 sm:p-10 shadow-2xl border-4 border-amber-300 relative overflow-hidden print-page" id="stampBookSection">
+      <!-- Decorative Passport Border Header -->
+      <div class="text-center pb-6 border-b-2 border-slate-200 relative">
+        <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-passport-navy text-passport-gold text-xs font-bold tracking-widest uppercase mb-2">
+          <i class="fa-solid fa-certificate"></i> Official Studio Record
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-serif font-black text-slate-900 tracking-wide">
+          PASSPORT STAMP COLLECTION
+        </h2>
+        <p class="text-sm text-slate-500 font-serif italic mt-1">
+          Collect all 5 • Show your teacher for verification
+        </p>
+      </div>
+
+      <!-- 5 Stamp Slots Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 py-8">
+        <!-- Stamp 01 -->
+        <div class="h-36 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/70 p-3 flex flex-col items-center justify-center text-center relative group hover:border-passport-burgundy transition">
+          <div id="collectionStamp1" class="hidden">
+            <div class="stamp-badge text-passport-stampRed p-2 rounded border-2 border-passport-stampRed">
+              <div class="text-[9px] font-bold">PREWRITING</div>
+              <div class="text-xs font-black tracking-wider">VERIFIED</div>
+              <div class="text-[14px] font-black">01</div>
+            </div>
+          </div>
+          <div id="collectionPlaceholder1" class="text-slate-400 text-center">
+            <span class="text-2xl font-serif font-bold text-slate-300 block">01</span>
+            <span class="text-[11px] font-mono uppercase">Prewriting</span>
+          </div>
+        </div>
+
+        <!-- Stamp 02 -->
+        <div class="h-36 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/70 p-3 flex flex-col items-center justify-center text-center relative group hover:border-passport-stampBlue transition">
+          <div id="collectionStamp2" class="hidden">
+            <div class="stamp-badge text-passport-stampBlue p-2 rounded border-2 border-passport-stampBlue">
+              <div class="text-[9px] font-bold">DRAFTING</div>
+              <div class="text-xs font-black tracking-wider">VERIFIED</div>
+              <div class="text-[14px] font-black">02</div>
+            </div>
+          </div>
+          <div id="collectionPlaceholder2" class="text-slate-400 text-center">
+            <span class="text-2xl font-serif font-bold text-slate-300 block">02</span>
+            <span class="text-[11px] font-mono uppercase">Drafting</span>
+          </div>
+        </div>
+
+        <!-- Stamp 03 -->
+        <div class="h-36 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/70 p-3 flex flex-col items-center justify-center text-center relative group hover:border-purple-700 transition">
+          <div id="collectionStamp3" class="hidden">
+            <div class="stamp-badge text-purple-800 p-2 rounded border-2 border-purple-800">
+              <div class="text-[9px] font-bold">REVISING</div>
+              <div class="text-xs font-black tracking-wider">VERIFIED</div>
+              <div class="text-[14px] font-black">03</div>
+            </div>
+          </div>
+          <div id="collectionPlaceholder3" class="text-slate-400 text-center">
+            <span class="text-2xl font-serif font-bold text-slate-300 block">03</span>
+            <span class="text-[11px] font-mono uppercase">Revising</span>
+          </div>
+        </div>
+
+        <!-- Stamp 04 -->
+        <div class="h-36 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/70 p-3 flex flex-col items-center justify-center text-center relative group hover:border-emerald-700 transition">
+          <div id="collectionStamp4" class="hidden">
+            <div class="stamp-badge text-emerald-800 p-2 rounded border-2 border-emerald-800">
+              <div class="text-[9px] font-bold">EDITING</div>
+              <div class="text-xs font-black tracking-wider">VERIFIED</div>
+              <div class="text-[14px] font-black">04</div>
+            </div>
+          </div>
+          <div id="collectionPlaceholder4" class="text-slate-400 text-center">
+            <span class="text-2xl font-serif font-bold text-slate-300 block">04</span>
+            <span class="text-[11px] font-mono uppercase">Editing</span>
+          </div>
+        </div>
+
+        <!-- Stamp 05 -->
+        <div class="h-36 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/70 p-3 flex flex-col items-center justify-center text-center relative group hover:border-amber-600 transition">
+          <div id="collectionStamp5" class="hidden">
+            <div class="stamp-badge text-amber-700 p-2 rounded border-2 border-amber-700">
+              <div class="text-[9px] font-bold">PUBLISHING</div>
+              <div class="text-xs font-black tracking-wider">VERIFIED</div>
+              <div class="text-[14px] font-black">05</div>
+            </div>
+          </div>
+          <div id="collectionPlaceholder5" class="text-slate-400 text-center">
+            <span class="text-2xl font-serif font-bold text-slate-300 block">05</span>
+            <span class="text-[11px] font-mono uppercase">Publishing</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FINAL DESTINATION CHAMPION BADGE -->
+      <div id="championSection" class="border-t-2 border-slate-200 pt-8 mt-2 transition-all duration-700 opacity-40 grayscale filter">
+        <div class="max-w-xl mx-auto bg-gradient-to-br from-amber-100 via-yellow-50 to-amber-200 rounded-2xl p-6 border-2 border-amber-400 shadow-xl text-center relative">
+          <div class="w-16 h-16 mx-auto -mt-12 bg-gradient-to-tr from-amber-500 to-yellow-300 rounded-full flex items-center justify-center text-passport-navy text-2xl shadow-lg border-2 border-white">
+            <i class="fa-solid fa-trophy"></i>
+          </div>
+
+          <div class="text-xs font-mono tracking-widest text-amber-900 font-bold uppercase mt-2">
+            ★ FINAL DESTINATION ★
+          </div>
+          <h3 class="text-2xl sm:text-3xl font-serif font-black text-passport-navy tracking-wide">
+            WRITING PROCESS CHAMPION
+          </h3>
+          <p class="text-xs text-amber-950 font-medium mt-1">
+            Grade 12 English Studio • Mastery of Rhetorical Craft
+          </p>
+
+          <div class="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-amber-300/60 font-mono text-xs">
+            <div class="text-left bg-white/60 p-2.5 rounded-lg">
+              <span class="text-slate-500 block text-[10px]">ISSUED DATE:</span>
+              <span id="championDate" class="font-bold text-slate-800">2026-OCT-15</span>
+            </div>
+            <div class="text-left bg-white/60 p-2.5 rounded-lg">
+              <span class="text-slate-500 block text-[10px]">TEACHER SIGNATURE:</span>
+              <span class="font-bold text-passport-burgundy font-serif italic text-sm">Validated Studio Lead ✓</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Print / Export Bar -->
+      <div class="no-print mt-8 flex flex-wrap items-center justify-center gap-4">
+        <button onclick="window.print()" class="bg-passport-navy hover:bg-slate-800 text-passport-gold border border-passport-gold/60 font-bold px-6 py-2.5 rounded-xl shadow flex items-center gap-2 transition active:scale-95 text-sm">
+          <i class="fa-solid fa-print"></i>
+          <span>Print / Save Passport as PDF</span>
+        </button>
+        <button onclick="resetPassport()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-4 py-2.5 rounded-xl text-sm transition">
+          <i class="fa-solid fa-rotate-left mr-1"></i> Reset Passport
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= TEACHER ANSWER KEY & RUBRIC MODAL ================= -->
+  <div id="answerKeyModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border-4 border-emerald-600 relative">
+      <!-- Modal Header -->
+      <div class="sticky top-0 bg-emerald-800 text-white p-5 flex items-center justify-between border-b border-emerald-700 z-10">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-lg">
+            <i class="fa-solid fa-chalkboard-user"></i>
+          </div>
+          <div>
+            <h3 class="font-serif font-bold text-lg sm:text-xl">Teacher Answer Key & Scoring Guide</h3>
+            <p class="text-xs text-emerald-200">Exemplar Responses & Criteria for Flight WR-12</p>
+          </div>
+        </div>
+        <button onclick="toggleAnswerKeyModal(false)" class="w-8 h-8 rounded-full bg-emerald-900/80 hover:bg-emerald-900 flex items-center justify-center text-white text-lg transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Content Body -->
+      <div class="p-6 space-y-6 text-sm text-slate-700">
+        <!-- Stage 1 Key -->
+        <div class="border-l-4 border-passport-burgundy bg-rose-50/50 p-4 rounded-r-xl">
+          <h4 class="font-bold text-passport-burgundy text-base flex items-center gap-2">
+            <span class="w-6 h-6 rounded bg-passport-burgundy text-white text-xs flex items-center justify-center">1</span>
+            Stage 1: Prewriting (3-2-1 Matrix Exemplar)
+          </h4>
+          <div class="mt-3 space-y-2 text-xs">
+            <p><strong>Topic:</strong> <em>Should Artificial Intelligence be Integrated into High School Classrooms?</em></p>
+            <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-1">
+              <p><strong>3 Core Ideas:</strong> (1) Personalized adaptive tutoring for struggling writers, (2) Immediate draft feedback, (3) Development of critical AI literacy for future careers.</p>
+              <p><strong>2 Logical Reasons:</strong> (1) High school educators lack the time to provide paragraph-by-paragraph live feedback daily, (2) Modern employers require ethical prompt navigation.</p>
+              <p><strong>1 Concrete Example:</strong> The 2024 Khanmigo school pilot demonstrated a 34% increase in student thesis clarity through Socratic AI questioning.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 2 Key -->
+        <div class="border-l-4 border-blue-600 bg-blue-50/50 p-4 rounded-r-xl">
+          <h4 class="font-bold text-blue-800 text-base flex items-center gap-2">
+            <span class="w-6 h-6 rounded bg-blue-600 text-white text-xs flex items-center justify-center">2</span>
+            Stage 2: Drafting (Rough First Version)
+          </h4>
+          <p class="text-xs text-slate-600 mt-1 italic">
+            Accept rough phrasing, colloquial fragments, and spelling lapses. The goal is momentum, not polish.
+          </p>
+          <div class="mt-2 bg-white p-3 rounded-lg border border-slate-200 font-mono text-xs text-slate-600">
+            "AI in high school is actually a super helpful tool when its used correctly. First, lots of students struggle with writing essays because teachers are busy. AI can give fast feedback. Also it teaches kids how to use prompt tech. Like Khanmigo showed students became way more confident when practicing with an AI coach."
+          </div>
+        </div>
+
+        <!-- Stage 3 Key -->
+        <div class="border-l-4 border-purple-600 bg-purple-50/50 p-4 rounded-r-xl">
+          <h4 class="font-bold text-purple-800 text-base flex items-center gap-2">
+            <span class="w-6 h-6 rounded bg-purple-600 text-white text-xs flex items-center justify-center">3</span>
+            Stage 3: Revising (Structural & Logical Upgrade)
+          </h4>
+          <div class="mt-2 bg-white p-3 rounded-lg border border-slate-200 text-xs space-y-1">
+            <p class="text-emerald-700 font-semibold">Key Revisions Made:</p>
+            <ul class="list-disc pl-5 space-y-1 text-slate-600">
+              <li>Replaced vague opener ("super helpful tool") with an assertive thesis claim.</li>
+              <li>Added formal transition signposts: <em>"Primarily," "Furthermore," "Consequently."</em></li>
+              <li>Integrated the quantitative metric (34% growth metric) to validate assertion.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Stage 4 Key -->
+        <div class="border-l-4 border-emerald-600 bg-emerald-50/50 p-4 rounded-r-xl">
+          <h4 class="font-bold text-emerald-800 text-base flex items-center gap-2">
+            <span class="w-6 h-6 rounded bg-emerald-600 text-white text-xs flex items-center justify-center">4</span>
+            Stage 4: Editing Key (Error Hunter Solutions)
+          </h4>
+          <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+            <div class="bg-white p-2.5 rounded border border-slate-200">
+              <span class="text-red-600 font-bold">1. Subject-Verb:</span> "utilizes" → <strong class="text-emerald-700">"utilize"</strong> (plural subject: students)
+            </div>
+            <div class="bg-white p-2.5 rounded border border-slate-200">
+              <span class="text-red-600 font-bold">2. Spelling:</span> "flurish" → <strong class="text-emerald-700">"flourish"</strong>
+            </div>
+            <div class="bg-white p-2.5 rounded border border-slate-200">
+              <span class="text-red-600 font-bold">3. Capitalization:</span> "mr. henderson" → <strong class="text-emerald-700">"Mr. Henderson"</strong>
+            </div>
+            <div class="bg-white p-2.5 rounded border border-slate-200">
+              <span class="text-red-600 font-bold">4. Punctuation:</span> "?" → <strong class="text-emerald-700">"," (comma)</strong> for dependent clause
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 5 Rubric -->
+        <div class="border-l-4 border-amber-500 bg-amber-50/50 p-4 rounded-r-xl">
+          <h4 class="font-bold text-amber-900 text-base flex items-center gap-2">
+            <span class="w-6 h-6 rounded bg-amber-500 text-white text-xs flex items-center justify-center">5</span>
+            Stage 5: Publishing & Oral Presentation Rubric
+          </h4>
+          <div class="mt-2 overflow-x-auto">
+            <table class="w-full text-left text-xs border border-slate-300 bg-white">
+              <thead class="bg-slate-100 text-slate-800">
+                <tr>
+                  <th class="p-2 border">Criteria</th>
+                  <th class="p-2 border">Proficient (3 pts)</th>
+                  <th class="p-2 border">Advanced (4 pts)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="p-2 border font-bold">Clarity & Voice</td>
+                  <td class="p-2 border">Audible, steady pacing, occasional notes check.</td>
+                  <td class="p-2 border font-semibold text-emerald-800">Dynamic projection, confident cadence, commands room.</td>
+                </tr>
+                <tr>
+                  <td class="p-2 border font-bold">Rhetorical Content</td>
+                  <td class="p-2 border">Clear thesis with supporting reasons.</td>
+                  <td class="p-2 border font-semibold text-emerald-800">Compelling thesis backed by nuanced evidence & rebuttal.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-100 p-4 border-t flex justify-end">
+        <button onclick="toggleAnswerKeyModal(false)" class="px-5 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs">
+          Close Answer Key
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    // State Tracker
+    const passportState = {
+      stamps: [false, false, false, false, false],
+      timerInterval: null,
+      timerSeconds: 300,
+      timerRunning: false,
+      hunterErrorsFound: 0
+    };
+
+    // Load initial date
+    window.addEventListener('DOMContentLoaded', () => {
+      const today = new Date();
+      const dateStr = today.toISOString().split('T')[0];
+      const stampDateEl = document.getElementById('manifestStampDate');
+      const championDateEl = document.getElementById('championDate');
+      if (stampDateEl) stampDateEl.innerText = `DATE: ${dateStr}`;
+      if (championDateEl) championDateEl.innerText = dateStr;
+      
+      // Auto-load student draft to showcase if prefilled
+      syncToPublishingShowcase();
+    });
+
+    // 1. Boarding Pass Header Sync
+    function updatePassengerBadge() {
+      const name = document.getElementById('passengerName').value.trim();
+      const showcaseAuthor = document.getElementById('showcaseAuthor');
+      if (name) {
+        showcaseAuthor.innerText = `By: ${name}`;
+      } else {
+        showcaseAuthor.innerText = `By: Student Author`;
+      }
+    }
+
+    function applyPresetPrompt() {
+      document.getElementById('writingTopic').value = "Should Artificial Intelligence be Integrated into High School Classrooms?";
+      showToast("Applied recommended Grade 12 prompt!");
+    }
+
+    // 2. Stage 1: Prewriting Validation
+    function validateStage1() {
+      const i1 = document.getElementById('idea1').value.trim();
+      const i2 = document.getElementById('idea2').value.trim();
+      const i3 = document.getElementById('idea3').value.trim();
+      const r1 = document.getElementById('reason1').value.trim();
+      const r2 = document.getElementById('reason2').value.trim();
+      const ex = document.getElementById('example1').value.trim();
+
+      if (!i1 || !i2 || !i3) {
+        showToast("Please provide all 3 brainstormed ideas first!", true);
+        return;
+      }
+      if (!r1 || !r2) {
+        showToast("Please complete both supporting reasons!", true);
+        return;
+      }
+      if (!ex) {
+        showToast("Please include at least 1 concrete example!", true);
+        return;
+      }
+
+      unlockStamp(1, 'PREWRITING', 'passport-stampRed');
+      showToast("Stamp 01 Granted: Prewriting Verified!");
+    }
+
+    function fillStage1Exemplar() {
+      document.getElementById('idea1').value = "Personalized pacing and instant feedback for diverse learners";
+      document.getElementById('idea2').value = "Accelerates revision cycles by acting as a Socratic sparring partner";
+      document.getElementById('idea3').value = "Prepares high school graduates for AI-augmented workforce realities";
+      document.getElementById('reason1').value = "Overstretched teachers cannot provide round-the-clock individual feedback";
+      document.getElementById('reason2').value = "Ethical AI literacy prevents academic dishonesty while teaching prompt craft";
+      document.getElementById('example1').value = "Khan Academy's 2024 Khanmigo pilot reported a 34% rise in student thesis clarity.";
+      showToast("Exemplar Prewriting loaded!");
+    }
+
+    // 3. Stage 2: Drafting & Sprint Timer
+    function toggleDraftTimer() {
+      const btn = document.getElementById('timerToggleBtn');
+      if (passportState.timerRunning) {
+        clearInterval(passportState.timerInterval);
+        passportState.timerRunning = false;
+        btn.innerText = "Resume Sprint";
+        btn.classList.remove('bg-rose-600', 'hover:bg-rose-700');
+        btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+      } else {
+        passportState.timerRunning = true;
+        btn.innerText = "Pause Sprint";
+        btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+        btn.classList.add('bg-rose-600', 'hover:bg-rose-700');
+        passportState.timerInterval = setInterval(() => {
+          if (passportState.timerSeconds > 0) {
+            passportState.timerSeconds--;
+            const mins = String(Math.floor(passportState.timerSeconds / 60)).padStart(2, '0');
+            const secs = String(passportState.timerSeconds % 60).padStart(2, '0');
+            document.getElementById('timerDisplay').innerText = `${mins}:${secs}`;
+          } else {
+            clearInterval(passportState.timerInterval);
+            passportState.timerRunning = false;
+            btn.innerText = "Sprint Ended";
+            showToast("5-minute drafting sprint complete! Fantastic hustle!");
+          }
+        }, 1000);
+      }
+    }
+
+    function updateDraftStats() {
+      const text = document.getElementById('draftText').value.trim();
+      const words = text ? text.split(/\s+/).length : 0;
+      document.getElementById('wordCount').innerText = words;
+      document.getElementById('charCount').innerText = text.length;
+
+      const note = document.getElementById('draftGoalNote');
+      if (words >= 40) {
+        note.innerText = `✓ Draft threshold achieved (${words} words)!`;
+        note.className = "text-emerald-700 font-bold";
+      } else {
+        note.innerText = `(Goal: At least 40 words to earn stamp - currently ${words}/40)`;
+        note.className = "text-amber-800 font-medium";
+      }
+    }
+
+    function fillStage2Exemplar() {
+      const sample = "Artificial Intelligence should be thoughtfully integrated into modern high school curricula rather than banned out of fear. First, AI provides adaptive 24/7 feedback for writing and brainstorming, helping learners pinpoint structural flaws before submission. Teachers are often inundated with grading, so AI acts as an accessible writing coach. Furthermore, students who learn ethical prompt engineering will be vastly better prepared for high-tech university environments. For instance, school pilots with Khanmigo proved that Socratic AI tutoring boosts student reasoning and self-directed revision without replacing human teachers.";
+      document.getElementById('draftText').value = sample;
+      updateDraftStats();
+      showToast("Exemplar rough draft populated!");
+    }
+
+    function validateStage2() {
+      const text = document.getElementById('draftText').value.trim();
+      const words = text ? text.split(/\s+/).length : 0;
+      if (words < 30) {
+        showToast("Keep going! Write at least 30-40 words in your first draft.", true);
+        return;
+      }
+      unlockStamp(2, 'DRAFTING', 'passport-stampBlue');
+      showToast("Stamp 02 Granted: First Version Locked!");
+    }
+
+    // 4. Stage 3: Revising
+    function fillStage3Exemplar() {
+      const draft = document.getElementById('draftText').value;
+      if (draft) {
+        document.getElementById('revisedText').value = draft;
+      } else {
+        document.getElementById('revisedText').value = "Consequently, the strategic integration of artificial intelligence into high school studio classrooms elevates instructional equity and rhetorical dexterity. Primarily, intelligent agents offer instantaneous diagnostic feedback, affording educators more time to conduct nuanced Socratic seminars. Furthermore, workplace demands dictate that emerging scholars master prompt engineering and algorithmic skepticism. Recent nationwide educational pilots corroborate this, demonstrating a 34% increase in student thesis articulation.";
+      }
+      document.getElementById('revCheck1').checked = true;
+      document.getElementById('revCheck2').checked = true;
+      document.getElementById('revCheck3').checked = true;
+      showToast("Revision draft upgraded with transitional flow!");
+    }
+
+    function validateStage3() {
+      const c1 = document.getElementById('revCheck1').checked;
+      const c2 = document.getElementById('revCheck2').checked;
+      const c3 = document.getElementById('revCheck3').checked;
+      const text = document.getElementById('revisedText').value.trim();
+
+      if (!c1 || !c2 || !c3) {
+        showToast("Please evaluate all 3 peer review checklist points!", true);
+        return;
+      }
+      if (text.length < 50) {
+        showToast("Please write or paste your revised text with improved phrasing!", true);
+        return;
+      }
+
+      unlockStamp(3, 'REVISING', 'purple-800');
+      showToast("Stamp 03 Granted: Revision Approved!");
+    }
+
+    // 5. Stage 4: Editing & Mini-Game
+    function resolveGameError(id, buttonEl) {
+      if (buttonEl.dataset.solved === "true") return;
+
+      let fixText = "";
+      let explanation = "";
+
+      if (id === 1) {
+        fixText = "utilize";
+        explanation = "✓ Subject-Verb Agreement: Plural subject 'students' requires 'utilize'!";
+      } else if (id === 2) {
+        fixText = "flourish";
+        explanation = "✓ Spelling: Corrected 'flurish' to 'flourish'!";
+      } else if (id === 3) {
+        fixText = "Mr. Henderson";
+        explanation = "✓ Capitalization: Proper noun honorific capitalized!";
+      } else if (id === 4) {
+        fixText = ",";
+        explanation = "✓ Punctuation: Dependent clause uses comma, not question mark!";
+      }
+
+      buttonEl.innerText = fixText;
+      buttonEl.classList.remove('bg-amber-500/20', 'text-amber-300', 'border-amber-400/50');
+      buttonEl.classList.add('bg-emerald-500/30', 'text-emerald-300', 'border-emerald-400');
+      buttonEl.dataset.solved = "true";
+
+      passportState.hunterErrorsFound++;
+      document.getElementById('errorHunterScore').innerText = `Found: ${passportState.hunterErrorsFound}/4`;
+      document.getElementById('errorFixFeedback').innerText = explanation;
+
+      // Auto check corresponding pillar
+      if (id === 1) document.getElementById('editCheckGrammar').checked = true;
+      if (id === 2) document.getElementById('editCheckSpelling').checked = true;
+      if (id === 3) document.getElementById('editCheckCaps').checked = true;
+      if (id === 4) document.getElementById('editCheckPunctuation').checked = true;
+
+      if (passportState.hunterErrorsFound === 4) {
+        document.getElementById('errorFixFeedback').innerText = "🎉 All 4 Inspector Errors found and repaired! Outstanding eye for detail!";
+      }
+    }
+
+    function fillStage4Exemplar() {
+      const rev = document.getElementById('revisedText').value.trim();
+      const polished = rev || "Consequently, the strategic integration of artificial intelligence into high school studio classrooms elevates instructional equity and rhetorical dexterity. Primarily, intelligent agents offer instantaneous diagnostic feedback, affording educators more time to conduct nuanced Socratic seminars. Furthermore, workplace demands dictate that emerging scholars master prompt engineering and algorithmic skepticism. Recent nationwide educational pilots corroborate this, demonstrating a 34% increase in student thesis articulation.";
+      document.getElementById('polishedText').value = polished;
+      
+      document.getElementById('editCheckGrammar').checked = true;
+      document.getElementById('editCheckSpelling').checked = true;
+      document.getElementById('editCheckPunctuation').checked = true;
+      document.getElementById('editCheckCaps').checked = true;
+      syncToPublishingShowcase();
+      showToast("Polished text synced and editing checklist completed!");
+    }
+
+    function validateStage4() {
+      const g = document.getElementById('editCheckGrammar').checked;
+      const s = document.getElementById('editCheckSpelling').checked;
+      const p = document.getElementById('editCheckPunctuation').checked;
+      const c = document.getElementById('editCheckCaps').checked;
+      const text = document.getElementById('polishedText').value.trim();
+
+      if (!g || !s || !p || !c) {
+        showToast("Verify all 4 editing checks: Grammar, Spelling, Punctuation & Caps!", true);
+        return;
+      }
+      if (text.length < 40) {
+        showToast("Please provide your final polished text in the editor!", true);
+        return;
+      }
+
+      unlockStamp(4, 'EDITING', 'emerald-800');
+      syncToPublishingShowcase();
+      showToast("Stamp 04 Granted: Editing Polish Verified!");
+    }
+
+    // 6. Stage 5: Publishing
+    function syncToPublishingShowcase() {
+      const pol = document.getElementById('polishedText').value.trim();
+      const rev = document.getElementById('revisedText').value.trim();
+      const draft = document.getElementById('draftText').value.trim();
+      const topic = document.getElementById('writingTopic').value.trim();
+      const showcaseTitle = document.getElementById('showcaseTitle');
+      const showcaseBody = document.getElementById('showcaseBody');
+
+      if (topic) showcaseTitle.innerText = topic;
+
+      const activeText = pol || rev || draft;
+      if (activeText) {
+        showcaseBody.innerText = `"${activeText}"`;
+        showcaseBody.classList.remove('italic', 'text-slate-400');
+        showcaseBody.classList.add('text-slate-800');
+      }
+    }
+
+    function validateStage5() {
+      const text = document.getElementById('polishedText').value.trim() || document.getElementById('revisedText').value.trim();
+      if (!text) {
+        showToast("Complete the previous drafting & editing stages before publishing!", true);
+        return;
+      }
+      unlockStamp(5, 'PUBLISHING', 'amber-700');
+      showToast("Stamp 05 Granted: Final Version Published & Presented!");
+      triggerCelebration();
+    }
+
+    // Universal Stamp & Badge Engine
+    function unlockStamp(stageNumber, label, colorClass) {
+      const index = stageNumber - 1;
+      passportState.stamps[index] = true;
+
+      // Update Section Header Stamp
+      const slot = document.getElementById(`stampSlot${stageNumber}`);
+      if (slot) {
+        slot.innerHTML = `
+          <div class="stamp-badge text-${colorClass} p-2 border-2 border-${colorClass} rounded stamp-animated">
+            <div class="text-[9px] 
